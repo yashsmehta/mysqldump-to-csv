@@ -15,14 +15,14 @@ def is_insert(line):
     """
     Returns true if the line begins a SQL insert statement.
     """
-    return line.startswith('INSERT INTO') or False
+    return line.startswith('INSERT INTO')
 
 
 def get_values(line):
     """
     Returns the portion of an INSERT statement containing values
     """
-    return line.partition('` VALUES ')[2]
+    return line.partition(' VALUES ')[2]
 
 
 def values_sanity_check(values):
@@ -58,9 +58,6 @@ def parse_values(values, outfile):
                 continue
             # If our string starts with an open paren
             if column[0] == "(":
-                # Assume that this column does not begin
-                # a new row.
-                new_row = False
                 # If we've been filling out a row
                 if len(latest_row) > 0:
                     # Check if the previous entry ended in
@@ -72,12 +69,8 @@ def parse_values(values, outfile):
                     if latest_row[-1][-1] == ")":
                         # Remove the close paren.
                         latest_row[-1] = latest_row[-1][:-1]
-                        new_row = True
-                # If we've found a new row, write it out
-                # and begin our new one
-                if new_row:
-                    writer.writerow(latest_row)
-                    latest_row = []
+                        writer.writerow(latest_row)
+                        latest_row = []
                 # If we're beginning a new row, eliminate the
                 # opening parentheses.
                 if len(latest_row) == 0:
@@ -103,10 +96,12 @@ def main():
     try:
         for line in fileinput.input():
             # Look for an INSERT statement and parse it.
-            if is_insert(line):
-                values = get_values(line)
-                if values_sanity_check(values):
-                    parse_values(values, sys.stdout)
+            if not is_insert(line):
+                raise Exception("SQL INSERT statement could not be found!")
+            values = get_values(line)
+            if not values_sanity_check(values):
+                raise Exception("Getting substring of SQL INSERT statement after ' VALUES ' failed!")
+            parse_values(values, sys.stdout)
     except KeyboardInterrupt:
         sys.exit(0)
 
