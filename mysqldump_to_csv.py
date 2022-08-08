@@ -49,7 +49,7 @@ def parse_values(values, outfile):
                         strict=True
     )
 
-    writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL)
+    writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, escapechar='\\')
     for reader_row in reader:
         for column in reader_row:
             # If our current string is empty...
