@@ -96,12 +96,14 @@ def main():
     try:
         for line in fileinput.input():
             # Look for an INSERT statement and parse it.
-            if not is_insert(line):
-                raise Exception("SQL INSERT statement could not be found!")
-            values = get_values(line)
-            if not values_sanity_check(values):
-                raise Exception("Getting substring of SQL INSERT statement after ' VALUES ' failed!")
-            parse_values(values, sys.stdout)
+            if is_insert(line):
+              values = get_values(line)
+              if values_sanity_check(values):
+                parse_values(values, sys.stdout)
+              else:
+                print('failed to parse line' + line)
+            else:
+              print('not a insert line' + line)
     except KeyboardInterrupt:
         sys.exit(0)
 
